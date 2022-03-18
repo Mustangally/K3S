@@ -1,4 +1,4 @@
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
-  --set hostname=rancher.local.kkovach.com \
+  --set hostname=<domain> \
   --set bootstrapPassword=admin123
