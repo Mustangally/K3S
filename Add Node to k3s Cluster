@@ -1,0 +1,8 @@
+# worker node
+curl -sfL https://get.k3s.io | K3S_TOKEN=cKZUxzzoFrYbnMQxzADPwwXQz K3S_URL=https://10.0.0.190:6443 sh -
+
+# server node
+curl -sfL https://get.k3s.io | sh -s server --token=cKZUxzzoFrYbnMQxzADPwwXQz --server https://10.0.0.190:6443
+
+# initial server node
+curl -sfL https://get.k3s.io | sh -s server --cluster-init --token=cKZUxzzoFrYbnMQxzADPwwXQz
