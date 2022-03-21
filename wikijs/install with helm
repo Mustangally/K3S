@@ -1,0 +1,1 @@
+helm install wikijs --set postgresql.persistence.existingClaim=wikijs-pvc --namespace=wiki-js --set ingress.enabled=false requarks/wiki

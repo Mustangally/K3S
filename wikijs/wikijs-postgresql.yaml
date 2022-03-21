@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: postgresql
+    release: wikijs
+  name: wikijs-postgresql
+  namespace: wiki-js
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: postgresql
+      role: master
+  serviceName: wikijs-postgresql-headless
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: postgresql
+        role: master
+      name: wikijs-postgresql
+    spec:
+      containers:
+      - env:
+        - name: BITNAMI_DEBUG
+          value: "false"
+        - name: POSTGRESQL_PORT_NUMBER
+          value: "5432"
+        - name: POSTGRESQL_VOLUME_DIR
+          value: /bitnami/postgresql
+        - name: PGDATA
+          value: /bitnami/postgresql/data
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgresql-password
+              name: wikijs-postgresql
+        - name: POSTGRES_DB
+          value: wiki
+        image: docker.io/bitnami/postgresql:11.5.0-debian-9-r60
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready -U "postgres" -d "wiki" -h 127.0.0.1 -p 5432
+          failureThreshold: 6
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: wikijs-postgresql
+        ports:
+        - containerPort: 5432
+          name: postgresql
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - -e
+            - |
+              pg_isready -U "postgres" -d "wiki" -h 127.0.0.1 -p 5432
+              [ -f /opt/bitnami/postgresql/tmp/.initialized ]
+          failureThreshold: 6
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        securityContext:
+          runAsUser: 1001
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /bitnami/postgresql
+          name: data
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - |
+          mkdir -p /bitnami/postgresql/data
+          chmod 700 /bitnami/postgresql/data
+          find /bitnami/postgresql -mindepth 0 -maxdepth 1 -not -name ".snapshot" -not -name "lost+found" | \
+            xargs chown -R 1001:1001
+        image: docker.io/bitnami/minideb:stretch
+        imagePullPolicy: Always
+        name: init-chmod-data
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        securityContext:
+          runAsUser: 0
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /bitnami/postgresql
+          name: data
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1001
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: wikijs-pvc
+  updateStrategy:
+    type: RollingUpdate

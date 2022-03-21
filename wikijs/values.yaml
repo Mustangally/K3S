@@ -1,0 +1,6 @@
+ingress:
+  enabled: false
+postgresql:
+  persistence:
+    existingClaim: wikijs-pvc
+replicaCount: 2

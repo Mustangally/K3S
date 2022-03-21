@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: wikijs
+    meta.helm.sh/release-namespace: wiki-js
+  creationTimestamp: "2022-03-19T07:39:48Z"
+  labels:
+    app.kubernetes.io/instance: wikijs
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: wiki
+    app.kubernetes.io/version: latest
+  name: wikijs
+  namespace: wiki-js
+spec:
+  clusterIP: 10.43.230.102
+  clusterIPs:
+  - 10.43.230.102
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: wikijs
+    app.kubernetes.io/name: wiki
+  sessionAffinity: None
+  type: ClusterIP
